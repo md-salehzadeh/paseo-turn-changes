@@ -22,14 +22,14 @@ function fileName(name: string | undefined): string | null {
   if (
     [...name].some((character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127)
   )
-    throw new Error("文件路径包含控制字符，暂不支持。");
+    throw new Error("The file path contains control characters; this is not supported.");
   return name;
 }
 
 function headerName(raw: string): string {
   const token = raw.split("\t", 1)[0];
   if (!token.startsWith('"')) return token;
-  if (!token.endsWith('"')) throw new Error("Git 文件路径的引号不完整。");
+  if (!token.endsWith('"')) throw new Error("The Git file path has unbalanced quotes.");
   const bytes: number[] = [];
   const escapes: { [key: string]: string } = {
     a: "\x07",
@@ -55,7 +55,7 @@ function headerName(raw: string): string {
         index += 4;
       } else {
         const escaped = escapes[value[index + 1]];
-        if (escaped === undefined) throw new Error("Git 文件路径包含未知转义。");
+        if (escaped === undefined) throw new Error("The Git file path contains an unknown escape.");
         bytes.push(...Buffer.from(escaped));
         index += 2;
       }
@@ -67,7 +67,7 @@ function headerName(raw: string): string {
 export function parseDiff(diff: string, fallbackPath?: string): Edit[] {
   if (!diff.trim()) return [];
   if (Buffer.byteLength(diff) > 12 * MAX_FILE_BYTES)
-    throw new Error("本轮差异过大，无法完整保存。");
+    throw new Error("This turn's diff is too large to save completely.");
   let input = diff;
   if (diff.trimStart().startsWith("@@") && fallbackPath)
     input = `--- ${fallbackPath}\n+++ ${fallbackPath}\n${diff}`;
@@ -85,7 +85,7 @@ export function parseDiff(diff: string, fallbackPath?: string): Edit[] {
     }
     return patches.map((patch) => ({ patch, segment }));
   });
-  if (!parsed.length) throw new Error("未识别到有效的统一差异格式。");
+  if (!parsed.length) throw new Error("No valid unified diff format was recognized.");
   return parsed.map(({ patch, segment }) => {
     if (
       patch.hunks.some((hunk) =>
@@ -94,7 +94,7 @@ export function parseDiff(diff: string, fallbackPath?: string): Edit[] {
         ),
       )
     )
-      throw new Error("差异中的行号或行数无效。");
+      throw new Error("The diff contains invalid line numbers or counts.");
     const isGit =
       (patch.oldFileName?.startsWith("a/") && patch.newFileName?.startsWith("b/")) ||
       (patch.oldFileName?.startsWith("a/") && patch.newFileName === "/dev/null") ||
@@ -104,7 +104,7 @@ export function parseDiff(diff: string, fallbackPath?: string): Edit[] {
       if (patch.newFileName?.startsWith("b/")) patch.newFileName = patch.newFileName.slice(2);
     }
     const name = fileName(patch.newFileName) ?? fileName(patch.oldFileName) ?? fallbackPath;
-    if (!name) throw new Error("差异缺少文件路径。");
+    if (!name) throw new Error("The diff is missing a file path.");
     const renamed =
       fileName(patch.oldFileName) &&
       fileName(patch.newFileName) &&
@@ -113,7 +113,7 @@ export function parseDiff(diff: string, fallbackPath?: string): Edit[] {
       return {
         kind: "unknown",
         path: name,
-        reason: "此改动没有文本差异，可能是二进制、权限或重命名操作。",
+        reason: "This change has no text diff; it may be binary, a permission change, or a rename.",
       };
     const mode = segment.match(/^(?:deleted file mode|old mode) (100[0-7]{3})$/m)?.[1];
     return {
@@ -203,7 +203,7 @@ export function editsFromItems(items: readonly unknown[]): Edit[] {
       edits.push({
         kind: "unknown",
         path: name,
-        reason: "编辑记录没有完整的修改前内容，无法准确还原。",
+        reason: "The edit record lacks the full before-content and cannot be restored exactly.",
       });
     }
   }
@@ -218,7 +218,7 @@ export async function reconstruct(cwd: string, edits: Edit[]): Promise<File[]> {
     list.push(edit);
     grouped.set(relative, list);
   }
-  if (grouped.size > 200) throw new Error("本轮超过 200 个文件，未生成完整记录。");
+  if (grouped.size > 200) throw new Error("This turn exceeds 200 files; no complete record was produced.");
   const files: File[] = [];
   let totalBytes = 0;
   for (const [name, changes] of grouped) {
@@ -228,7 +228,7 @@ export async function reconstruct(cwd: string, edits: Edit[]): Promise<File[]> {
       Buffer.byteLength(file.after?.text ?? "") +
       Buffer.byteLength(file.patch) +
       Buffer.byteLength(file.content ?? "");
-    if (totalBytes > 12 * MAX_FILE_BYTES) throw new Error("本轮快照超过 24 MiB，未生成完整记录。");
+    if (totalBytes > 12 * MAX_FILE_BYTES) throw new Error("This turn's snapshot exceeds 24 MiB; no complete record was produced.");
     if (file.issue || file.patch) files.push(file);
   }
   return files;
@@ -256,7 +256,7 @@ async function reconstructFile(cwd: string, name: string, changes: Edit[]): Prom
     return {
       ...base,
       previousPath: path.relative(cwd, path.resolve(cwd, move.patch.oldFileName!)),
-      issue: "重命名改动暂不支持自动撤销。",
+      issue: "Automatic undo is not supported for renames.",
       ...recordedEdits(name, changes),
     };
   try {
@@ -267,26 +267,26 @@ async function reconstructFile(cwd: string, name: string, changes: Edit[]): Prom
     for (const change of [...changes].reverse()) {
       if (change.kind === "unknown") throw new Error(change.reason);
       if (change.kind === "content")
-        throw new Error("编辑记录只有修改后内容，无法确认修改前的状态。");
+        throw new Error("The edit record only has after-content; the before state cannot be confirmed.");
       if (change.kind === "replace") {
-        if (!exists) throw new Error("编辑后的文件不存在。");
+        if (!exists) throw new Error("The file does not exist after the edit.");
         if (!change.newText || text.split(change.newText).length !== 2)
-          throw new Error("无法唯一定位这次编辑，可能已有后续修改。");
+          throw new Error("This edit cannot be located uniquely; it may have later changes.");
         text = text.replace(change.newText, () => change.oldText);
         continue;
       }
       const oldPath = fileName(change.patch.oldFileName);
       const newPath = fileName(change.patch.newFileName);
       if (change.oldMode !== undefined) originalMode = change.oldMode;
-      if ((newPath === null) !== !exists) throw new Error("文件的新增或删除状态与编辑记录不一致。");
+      if ((newPath === null) !== !exists) throw new Error("The file's added/deleted state does not match the edit record.");
       const restored = applyPatch(text, reversePatch(change.patch), {
         fuzzFactor: 0,
         autoConvertLineEndings: false,
       });
-      if (restored === false) throw new Error("文件内容与编辑记录不一致，无法完整还原。");
+      if (restored === false) throw new Error("The file content does not match the edit record and cannot be restored exactly.");
       text = restored;
       exists = oldPath !== null;
-      if (!exists && text !== "") throw new Error("新增文件还有未记录的内容。");
+      if (!exists && text !== "") throw new Error("The added file has content that was not recorded.");
     }
     const before = exists ? { text, mode: originalMode ?? 0o644 } : null;
     const patch = createTwoFilesPatch(
@@ -303,7 +303,7 @@ async function reconstructFile(cwd: string, name: string, changes: Edit[]): Prom
     const changed = before === null || after === null || before.text !== after.text;
     const issue =
       exists && originalMode === undefined
-        ? "删除记录没有原文件权限，差异可查看，自动撤销不可用。"
+        ? "The delete record lacks the original file permissions; the diff is viewable but automatic undo is unavailable."
         : null;
     return { ...base, before, after, additions, deletions, issue, patch: changed ? patch : "" };
   } catch (error) {

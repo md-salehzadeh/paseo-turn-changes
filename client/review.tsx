@@ -90,7 +90,7 @@ export function Review(
         }}
       >
         <Text style={{ color: theme.colors.foreground, fontSize: 14, fontWeight: "600" }}>
-          本轮改动 · {summary.files.length} 个文件
+          Turn changes · {summary.files.length} files
         </Text>
         {totalsKnown && (
           <Counts
@@ -102,7 +102,7 @@ export function Review(
         <View style={{ flex: 1 }} />
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={showTree ? (wide ? "隐藏文件列表" : "返回差异") : "显示文件列表"}
+          accessibilityLabel={showTree ? (wide ? "Hide file list" : "Back to diff") : "Show file list"}
           accessibilityState={{ expanded: showTree }}
           onPress={() => (wide ? setTreeHidden(!treeHidden) : setFileListOpen(!fileListOpen))}
           style={{
@@ -120,7 +120,7 @@ export function Review(
             color={theme.colors.foregroundMuted}
           />
           <Text style={{ color: theme.colors.foreground, fontSize: 12 }}>
-            {showTree && !wide ? "返回差异" : "文件"}
+            {showTree && !wide ? "Back to diff" : "Files"}
           </Text>
         </Pressable>
       </View>
@@ -155,9 +155,9 @@ export function Review(
                 />
               )}
               <Pressable
-                ref={(node) => setHoverHint(node, "打开源文件")}
+                ref={(node) => setHoverHint(node, "Open source file")}
                 accessibilityRole="button"
-                accessibilityLabel="打开源文件"
+                accessibilityLabel="Open source file"
                 disabled={open.isPending}
                 onPress={() => open.mutate(index)}
                 style={{ padding: 8, opacity: open.isPending ? 0.4 : 1 }}
@@ -167,13 +167,13 @@ export function Review(
             </View>
             {selectedFile?.previousPath && (
               <Text selectable style={{ color: theme.colors.foregroundMuted, fontSize: 12 }}>
-                重命名自 {selectedFile.previousPath}
+                Renamed from {selectedFile.previousPath}
               </Text>
             )}
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="上一个文件"
+                accessibilityLabel="Previous file"
                 disabled={index === 0}
                 accessibilityState={{ disabled: index === 0 }}
                 onPress={() => setIndex(index - 1)}
@@ -186,7 +186,7 @@ export function Review(
               </Text>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="下一个文件"
+                accessibilityLabel="Next file"
                 disabled={index + 1 >= summary.files.length}
                 accessibilityState={{ disabled: index + 1 >= summary.files.length }}
                 onPress={() => setIndex(index + 1)}
@@ -203,24 +203,24 @@ export function Review(
           )}
           {query.data?.reviewKind === "edits" && (
             <Text style={{ color: theme.colors.foregroundMuted, padding: 12 }}>
-              编辑记录 · 行数为各次编辑合计
+              Edit records · line counts are the sum of individual edits
             </Text>
           )}
           {query.data?.reviewKind === "content" && (
-            <Text style={{ color: theme.colors.foregroundMuted, padding: 12 }}>修改后内容</Text>
+            <Text style={{ color: theme.colors.foregroundMuted, padding: 12 }}>Content after edits</Text>
           )}
           {query.isPending && (
-            <Text style={{ color: theme.colors.foregroundMuted, padding: 16 }}>正在读取差异…</Text>
+            <Text style={{ color: theme.colors.foregroundMuted, padding: 16 }}>Loading diff…</Text>
           )}
           {query.isError && (
             <View style={{ padding: 16, gap: 10 }}>
               <Text style={{ color: theme.colors.statusDanger }}>{query.error.message}</Text>
-              <Action theme={theme} label="重试" onPress={() => void query.refetch()} />
+              <Action theme={theme} label="Retry" onPress={() => void query.refetch()} />
             </View>
           )}
           {query.data?.reviewKind === "unavailable" && (
             <Text style={{ color: theme.colors.foregroundMuted, padding: 16 }}>
-              本条记录没有可展示的差异或文件内容。
+              This record has no diff or file content to show.
             </Text>
           )}
           {query.data && (
@@ -277,7 +277,7 @@ export function Review(
                       accessibilityLabel={
                         number === null
                           ? ""
-                          : `${line.kind === "delete" ? "原" : "新"}行号 ${number}`
+                          : `${line.kind === "delete" ? "old" : "new"} line ${number}`
                       }
                       style={{
                         color,

@@ -40,13 +40,13 @@ function Preview() {
     >
       <main style={{ maxWidth: compact ? 366 : 1000, margin: "0 auto" }}>
         <p style={{ color: theme.colors.foregroundMuted, fontSize: 13 }}>
-          交互预览 · 真实插件组件使用模拟数据；面板、弹窗和设置控件为测试替身。
+          Interactive preview · real plugin components with simulated data; panels, popovers, and settings controls are test doubles.
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <button onClick={() => setLight(!light)}>{light ? "深色" : "浅色"}</button>
-          <button onClick={() => setCompact(!compact)}>{compact ? "桌面宽度" : "手机宽度"}</button>
+          <button onClick={() => setLight(!light)}>{light ? "Dark" : "Light"}</button>
+          <button onClick={() => setCompact(!compact)}>{compact ? "Desktop width" : "Phone width"}</button>
           <button onClick={() => setSettings(!settings)}>
-            {settings ? "查看改动" : "数据来源设置"}
+            {settings ? "View changes" : "Change sources"}
           </button>
         </div>
         {settings ? (
@@ -55,8 +55,8 @@ function Preview() {
           </div>
         ) : (
           <>
-            <p style={{ marginTop: 36, color: theme.colors.foregroundMuted }}>用时 6m 24s</p>
-            <p>本轮已完成文件修改。可以逐个审核，或撤销这一轮。</p>
+            <p style={{ marginTop: 36, color: theme.colors.foregroundMuted }}>Elapsed 6m 24s</p>
+            <p>This turn finished editing files. Review them one by one or undo the whole turn.</p>
             <RecordCard
               {...hostProps}
               workspaceId="preview-workspace"
@@ -68,7 +68,7 @@ function Preview() {
       </main>
       {panel && (
         <aside
-          aria-label="本轮代码差异"
+          aria-label="Turn code changes"
           style={{
             position: "fixed",
             right: 0,
@@ -82,8 +82,8 @@ function Preview() {
             zIndex: 1,
           }}
         >
-          <button aria-label="关闭审核面板" onClick={() => setPanel(false)}>
-            关闭审核面板
+          <button aria-label="Close review panel" onClick={() => setPanel(false)}>
+            Close review panel
           </button>
           <ReviewPanel
             {...hostProps}

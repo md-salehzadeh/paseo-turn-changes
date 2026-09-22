@@ -14,16 +14,16 @@ export async function checkedPath(cwd: string, name: string): Promise<string> {
     relative === ".." ||
     path.isAbsolute(relative)
   ) {
-    throw new Error("文件不在当前工作目录内。");
+    throw new Error("The file is outside the current working directory.");
   }
   const parts = relative.split(path.sep);
-  if (parts.includes(".git")) throw new Error("不处理 Git 内部文件。");
+  if (parts.includes(".git")) throw new Error("Git internals are not processed.");
   let cursor = root;
   for (const part of parts) {
     cursor = path.join(cursor, part);
     try {
       const stat = await lstat(cursor);
-      if (stat.isSymbolicLink()) throw new Error("不处理符号链接文件或目录。");
+      if (stat.isSymbolicLink()) throw new Error("Symlinks are not processed.");
     } catch (error) {
       if (!isMissing(error)) throw error;
     }
@@ -35,10 +35,10 @@ export async function snapshot(cwd: string, name: string): Promise<Snapshot | nu
   const target = await checkedPath(cwd, name);
   try {
     const stat = await lstat(target);
-    if (!stat.isFile()) throw new Error("只支持普通文本文件。");
-    if (stat.size > MAX_FILE_BYTES) throw new Error("文件超过 2 MiB，未保存可撤销快照。");
+    if (!stat.isFile()) throw new Error("Only regular text files are supported.");
+    if (stat.size > MAX_FILE_BYTES) throw new Error("The file exceeds 2 MiB; no undo snapshot was saved.");
     const bytes = await readFile(target);
-    if (bytes.includes(0)) throw new Error("二进制文件不支持文本差异。");
+    if (bytes.includes(0)) throw new Error("Binary files do not support text diffs.");
     const text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
     return { text, mode: stat.mode & 0o777 };
   } catch (error) {

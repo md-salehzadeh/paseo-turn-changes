@@ -31,7 +31,7 @@ const event = {
     },
   },
 };
-test("同一 Codex 调用补回新增差异和多文件，不伪造撤销快照", () => {
+test("One Codex call recovers added diffs and multiple files without fabricating undo snapshots", () => {
   const items = codexRecordedItems([call], [event], sessionId, "/repo");
   assert.equal(editsFromItems(items).length, 2);
   const original = {
@@ -48,7 +48,7 @@ test("同一 Codex 调用补回新增差异和多文件，不伪造撤销快照"
         content: "new\nfile\n",
         additions: null,
         deletions: null,
-        issue: "文件不在当前工作目录内。",
+        issue: "The file is outside the current working directory.",
       },
     ],
   } as Record;
@@ -67,7 +67,7 @@ test("同一 Codex 调用补回新增差异和多文件，不伪造撤销快照"
   assert.equal(reviewRecord(original, items).files.length, 1);
 });
 
-test("自定义后端按继承链及环境覆盖定位 Codex 日志，不按名称猜测", () => {
+test("Custom backends resolve Codex logs via the extends chain and env overrides, never by name guessing", () => {
   const providers = {
     codex: { env: { CODEX_HOME: "/base" } },
     primary: { extends: "codex", env: { CODEX_HOME: "/primary" } },
@@ -87,7 +87,7 @@ test("自定义后端按继承链及环境覆盖定位 Codex 日志，不按名�
     assert.equal(codexHomeFor(provider, providers), undefined, provider);
 });
 
-test("补回文件不复活原始时间线已有但净变化为零的文件，不改变已有索引", () => {
+test("Recovered files do not revive net-zero files from the original timeline and keep existing indices", () => {
   const original = {
     cwd: "/repo",
     source: "edits",
@@ -115,7 +115,7 @@ test("补回文件不复活原始时间线已有但净变化为零的文件，�
   assert.equal(shown.files[1].after, null);
   assert.equal(original.canUndo, true);
 });
-test("其他会话、调用、失败结果、无新增标记的正文均保留原记录", () => {
+test("Other sessions, calls, failed results, and bodies without add markers keep their original records", () => {
   assert.deepEqual(codexRecordedItems([call], [event], "another-session", "/repo"), [call]);
   const other = { ...call, callId: "other" };
   assert.deepEqual(codexRecordedItems([other], [event], sessionId, "/repo"), [other]);
@@ -126,7 +126,7 @@ test("其他会话、调用、失败结果、无新增标记的正文均保留�
   assert.deepEqual(codexRecordedItems([call], [unknown], sessionId, "/repo"), [call]);
   assert.equal(recordedEdits("new.ts", editsFromItems([call])).patch, "");
 });
-test("绑定本机 Codex 会话日志；错误元数据和缺失日志不补充", async () => {
+test("Binds to the local Codex session log; bad metadata and missing logs add nothing", async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), "turn-codex-"));
   try {
     await mkdir(path.join(root, "sessions", "2026"), { recursive: true });

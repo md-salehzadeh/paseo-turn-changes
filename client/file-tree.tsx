@@ -41,7 +41,7 @@ export function FileTree({
           testID={folder ? "turn-file-directory" : "turn-file-entry"}
           accessibilityRole="button"
           accessibilityLabel={
-            folder ? `${expanded ? "收起" : "展开"}目录 ${node.path}` : `选择文件 ${node.path}`
+            folder ? `${expanded ? "Collapse" : "Expand"} folder ${node.path}` : `Select file ${node.path}`
           }
           accessibilityState={folder ? { expanded } : { selected }}
           onPress={() => {
@@ -109,8 +109,8 @@ export function FileTree({
       >
         <Icon name="Search" size={16} color={colors.foregroundMuted} />
         <TextInput
-          accessibilityLabel="筛选改动文件"
-          placeholder="筛选文件…"
+          accessibilityLabel="Filter changed files"
+          placeholder="Filter files…"
           value={filter}
           onChangeText={setFilter}
           autoCapitalize="none"
@@ -127,7 +127,7 @@ export function FileTree({
         {filter !== "" && (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="清除文件筛选"
+            accessibilityLabel="Clear file filter"
             onPress={() => setFilter("")}
             style={{ padding: 4 }}
           >
@@ -142,7 +142,7 @@ export function FileTree({
       >
         {nodes.map((node) => row(node, 0))}
         {nodes.length === 0 && (
-          <Text style={{ color: colors.foregroundMuted, padding: 16 }}>没有匹配的文件</Text>
+          <Text style={{ color: colors.foregroundMuted, padding: 16 }}>No matching files</Text>
         )}
       </ScrollView>
     </View>

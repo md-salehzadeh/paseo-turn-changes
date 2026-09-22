@@ -33,10 +33,10 @@ export function FilePath({
   };
   const label =
     copyState === "copied"
-      ? "已复制路径"
+      ? "Path copied"
       : copyState === "error"
-        ? "复制失败，点击重试"
-        : "复制路径";
+        ? "Copy failed, press to retry"
+        : "Copy path";
   async function copy() {
     try {
       await copyText(path);
@@ -58,8 +58,8 @@ export function FilePath({
         <Pressable
           testID="turn-file-path"
           accessibilityRole="button"
-          accessibilityLabel={`查看 ${path} 的本轮差异`}
-          accessibilityHint="点击查看差异，长按查看并复制完整路径"
+          accessibilityLabel={`View this turn's changes for ${path}`}
+          accessibilityHint="Press to view changes, long-press to view and copy the full path"
           ref={(node) => setHoverHint(node, path)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
@@ -90,7 +90,7 @@ export function FilePath({
         {Platform.OS === "web" && !compact && (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`复制完整路径 ${path}`}
+            accessibilityLabel={`Copy full path ${path}`}
             ref={(node) => setHoverHint(node, label)}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
@@ -110,7 +110,7 @@ export function FilePath({
           </Pressable>
         )}
       </View>
-      <Modal title="完整文件路径" open={open} onOpenChange={setOpen}>
+      <Modal title="Full file path" open={open} onOpenChange={setOpen}>
         <Modal.Content>
           <Text selectable style={{ color: colors.foreground, fontSize: 13 }}>
             {path}

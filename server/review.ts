@@ -28,10 +28,10 @@ export function reviewFile(file: Record["files"][number]): Record["files"][numbe
       : "unavailable";
   let issue = file.issue;
   if (issue && reviewKind !== "unavailable") {
-    if (issue === "文件不在当前工作目录内。") issue = "工作目录外文件，仅供查看，自动撤销不可用。";
-    else if (issue === "文件内容与编辑记录不一致，无法完整还原。")
-      issue = "文件在编辑后发生变化（如格式化），以下为已记录的编辑，自动撤销不可用。";
-    else if (!issue.includes("撤销")) issue += " 自动撤销不可用。";
+    if (issue === "The file is outside the current working directory.") issue = "File outside the working directory; view only, automatic undo unavailable.";
+    else if (issue === "The file content does not match the edit record and cannot be restored exactly.")
+      issue = "The file changed after the edit (e.g. formatting); below are the recorded edits, and automatic undo is unavailable.";
+    else if (!issue.includes("undo")) issue += " Automatic undo is unavailable.";
   }
   return { ...file, additions, deletions, reviewKind, issue };
 }
@@ -72,7 +72,7 @@ export function reviewRecord(
           deletions: null,
           before: null,
           after: null,
-          issue: "重命名改动暂不支持自动撤销。",
+          issue: "Automatic undo is not supported for renames.",
         }
       : file;
   });
@@ -95,7 +95,7 @@ export function reviewRecord(
       patch: "",
       before: null,
       after: null,
-      issue: "从本轮工具记录补充的文件，自动撤销不可用。",
+      issue: "File recovered from this turn's tool record; automatic undo is unavailable.",
     });
   }
   return {

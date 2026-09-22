@@ -9,7 +9,7 @@ import { contribute } from "../server/runtime";
 import { recordSchema, Store } from "../server/store";
 import { getSummary, getFile, getSource, saveSource } from "../shared/contracts";
 
-test("自定义 Codex 后端在历史审核、源文件读写及新轮次中使用同一日志和文件索引", async () => {
+test("A custom Codex backend uses the same log and file indices for history, source read/write, and new turns", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "turn-provider-"));
   const originalHome = process.env.PASEO_TURN_CHANGES_HOME;
   process.env.PASEO_TURN_CHANGES_HOME = path.join(root, "records");
@@ -91,7 +91,7 @@ test("自定义 Codex 后端在历史审核、源文件读写及新轮次中使�
           content: "first\n",
           before: null,
           after: null,
-          issue: "缺少旧内容",
+          issue: "missing before-content",
         },
       ],
     });

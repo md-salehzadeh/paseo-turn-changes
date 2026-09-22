@@ -15,7 +15,7 @@ function leaves(nodes: FileTreeNode[]): FileTreeNode[] {
   return nodes.flatMap((node) => (node.index === undefined ? leaves(node.children) : [node]));
 }
 
-test("文件树按目录组织，压缩单目录链，同名文件保留原始索引", () => {
+test("The file tree groups by directory, compresses single-child chains, and keeps original indices for same-named files", () => {
   const nodes = buildFileTree(files);
   const src = nodes.find((node) => node.name === "src")!;
   assert.deepEqual(
@@ -35,13 +35,13 @@ test("文件树按目录组织，压缩单目录链，同名文件保留原始�
   );
 });
 
-test("按完整路径和旧名称筛选，不区分大小写，筛选不改变文件索引", () => {
+test("Filters by full path and old name, case-insensitively, without changing file indices", () => {
   assert.deepEqual(
     leaves(buildFileTree(files, " VIEW/INDEX ")).map((node) => node.index),
     [1],
   );
   assert.equal(leaves(buildFileTree(files, "index.ts")).length, 2);
-  assert.deepEqual(buildFileTree(files, "不存在"), []);
+  assert.deepEqual(buildFileTree(files, "missing"), []);
   assert.deepEqual(
     leaves(buildFileTree([{ ...files[0], previousPath: "old.ts" }], "old")).map(
       (node) => node.path,

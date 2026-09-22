@@ -18,7 +18,7 @@ function contains(root: string, target: string) {
 }
 async function existingFile(target: string) {
   try {
-    if (!(await stat(target)).isFile()) throw new Error("源路径不是文件。");
+    if (!(await stat(target)).isFile()) throw new Error("The source path is not a file.");
     return await realpath(target);
   } catch (error) {
     if (isMissing(error)) return null;
@@ -28,7 +28,7 @@ async function existingFile(target: string) {
 
 export async function resolveSource(cwd: string, name: string, paseoHome: string) {
   const original = path.resolve(cwd, name);
-  if (original.split(path.sep).includes(".git")) throw new Error("不打开 Git 内部文件。");
+  if (original.split(path.sep).includes(".git")) throw new Error("Git internals are not opened.");
   let absolutePath = await existingFile(original);
   let root = cwd;
   if (!absolutePath) {
@@ -60,10 +60,10 @@ export async function resolveSource(cwd: string, name: string, paseoHome: string
       root = owner.mainRepoRoot;
       absolutePath = await existingFile(path.resolve(root, path.relative(owner.cwd, original)));
       if (absolutePath && !contains(await realpath(root), absolutePath))
-        throw new Error("源文件链接指向主仓库之外。");
+        throw new Error("The source file link points outside the main repository.");
     }
   }
-  if (!absolutePath) throw new Error("源文件已删除或移动，未找到可打开的实际文件。");
+  if (!absolutePath) throw new Error("The source file was deleted or moved; no actual file to open was found.");
   try {
     root = await realpath(root);
   } catch {
@@ -74,7 +74,7 @@ export async function resolveSource(cwd: string, name: string, paseoHome: string
 }
 
 const MAX_SOURCE_BYTES = 1024 * 1024;
-const conflict = "源文件已在其他地方修改或移动，未保存。草稿已保留，请重新打开文件核对。";
+const conflict = "The source file changed or moved elsewhere; not saved. Your draft was kept — reopen the file to reconcile.";
 function version(info: Awaited<ReturnType<FileHandle["stat"]>>, bytes: Buffer) {
   return createHash("sha256")
     .update(`${info.dev}:${info.ino}:${info.size}:${info.mtimeMs}:${info.ctimeMs}:`)
@@ -83,8 +83,8 @@ function version(info: Awaited<ReturnType<FileHandle["stat"]>>, bytes: Buffer) {
 }
 async function readHandle(handle: FileHandle) {
   const info = await handle.stat();
-  if (!info.isFile()) throw new Error("源路径不是普通文件。");
-  if (info.size > MAX_SOURCE_BYTES) throw new Error("文件超过 1 MiB，暂不支持在侧栏编辑。");
+  if (!info.isFile()) throw new Error("The source path is not a regular file.");
+  if (info.size > MAX_SOURCE_BYTES) throw new Error("The file exceeds 1 MiB; side-panel editing is not supported.");
   const bytes = Buffer.alloc(MAX_SOURCE_BYTES + 1);
   let size = 0;
   while (size < bytes.length) {
@@ -92,14 +92,14 @@ async function readHandle(handle: FileHandle) {
     if (read.bytesRead === 0) break;
     size += read.bytesRead;
   }
-  if (size > MAX_SOURCE_BYTES) throw new Error("文件超过 1 MiB，暂不支持在侧栏编辑。");
+  if (size > MAX_SOURCE_BYTES) throw new Error("The file exceeds 1 MiB; side-panel editing is not supported.");
   const content = bytes.subarray(0, size);
-  if (content.includes(0)) throw new Error("二进制文件不支持在侧栏编辑。");
+  if (content.includes(0)) throw new Error("Binary files cannot be edited in the side panel.");
   let text: string;
   try {
     text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(content);
   } catch {
-    throw new Error("文件不是 UTF-8 文本，暂不支持在侧栏编辑。");
+    throw new Error("The file is not UTF-8 text; side-panel editing is not supported.");
   }
   const after = await handle.stat();
   if (info.mtimeMs !== after.mtimeMs || info.ctimeMs !== after.ctimeMs || info.size !== after.size)
@@ -132,8 +132,8 @@ export async function writeSource(
 ): Promise<SourceDocument> {
   if (source.absolutePath !== input.absolutePath) throw new Error(conflict);
   const bytes = Buffer.from(input.content);
-  if (bytes.length > MAX_SOURCE_BYTES) throw new Error("文件超过 1 MiB，未保存。");
-  if (bytes.includes(0)) throw new Error("内容包含二进制字符，未保存。");
+  if (bytes.length > MAX_SOURCE_BYTES) throw new Error("The file exceeds 1 MiB; not saved.");
+  if (bytes.includes(0)) throw new Error("The content contains binary characters; not saved.");
   // Open without truncation; compare the exact file and version before writing.
   const handle = await open(
     source.absolutePath,
@@ -153,7 +153,7 @@ export async function writeSource(
     let offset = 0;
     while (offset < bytes.length) {
       const written = await handle.write(bytes, offset, bytes.length - offset, offset);
-      if (!written.bytesWritten) throw new Error("文件写入中断，请核对源文件。");
+      if (!written.bytesWritten) throw new Error("The file write was interrupted; verify the source file.");
       offset += written.bytesWritten;
     }
     await handle.truncate(bytes.length);

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { diffLines } from "../shared/diff-lines";
 
-test("显示真实增删行号，正文的 --- 与 +++ 不误认成文件头", () => {
+test("Shows real added/deleted line numbers and does not mistake body --- / +++ for file headers", () => {
   const rows = diffLines(
     "--- file\n+++ file\n@@ -10,2 +20,2 @@\n context\n--- heading\n+++ heading\n@@ -0,0 +1 @@\n+created\n\\ No newline at end of file",
   );

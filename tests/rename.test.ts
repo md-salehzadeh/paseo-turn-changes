@@ -46,13 +46,13 @@ function historical(): Record {
         deletions: 1,
         before: null,
         after: null,
-        issue: "文件的新增或删除状态与编辑记录不一致。",
+        issue: "The file's added/deleted state does not match the edit record.",
       },
     ],
   } as Record;
 }
 
-test("Codex 重命名保留原路径与目标路径，修复已有旧卡片而不重复添加文件", async () => {
+test("Codex renames keep both paths, repairing old cards without duplicating files", async () => {
   const original = historical();
   const saved = structuredClone(original);
   const enriched = codexRecordedItems([call], [event()], sessionId, "/repo");
@@ -71,11 +71,11 @@ test("Codex 重命名保留原路径与目标路径，修复已有旧卡片而�
   assert.equal(captured.length, 1);
   assert.equal(captured[0].path, "new/Identifier.kt");
   assert.equal(captured[0].previousPath, "old/Monitor.kt");
-  assert.match(captured[0].issue!, /重命名/);
+  assert.match(captured[0].issue!, /rename/);
   assert.equal(reviewRecord({ ...original, files: captured }, enriched, [call]).files.length, 1);
 });
 
-test("纯重命名无文本变更仍有记录，不依赖当前文件存在", async () => {
+test("Pure renames with no text change are still recorded, independent of the current file's existence", async () => {
   const enriched = codexRecordedItems([call], [event("")], sessionId, "/repo");
   const files = await reconstruct("/repo", editsFromItems(enriched));
   const shown = reviewRecord({ ...historical(), files });
@@ -84,7 +84,7 @@ test("纯重命名无文本变更仍有记录，不依赖当前文件存在", as
   assert.deepEqual([shown.files[0].additions, shown.files[0].deletions], [0, 0]);
 });
 
-test("一次调用包含多个文件时，补回遗漏的重命名并保留原路径", () => {
+test("A call spanning multiple files recovers missing renames and keeps original paths", () => {
   const firstPath = "/repo/interface.kt";
   const firstCall = { ...call, detail: { ...call.detail, filePath: firstPath } };
   const native = event();
@@ -112,7 +112,7 @@ test("一次调用包含多个文件时，补回遗漏的重命名并保留原�
   assert.deepEqual([shown.files[1].additions, shown.files[1].deletions], [1, 1]);
 });
 
-test("重命名不能跨会话或失败调用恢复，普通删除保持删除而非重命名", async () => {
+test("Renames do not recover across sessions or failed calls; plain deletions stay deletions", async () => {
   assert.deepEqual(codexRecordedItems([call], [event()], "other", "/repo"), [call]);
   const failed = { ...call, status: "failed" };
   assert.deepEqual(codexRecordedItems([failed], [event()], sessionId, "/repo"), [failed]);

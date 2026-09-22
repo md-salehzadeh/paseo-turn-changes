@@ -68,7 +68,7 @@ export class Store {
   async saveSettings(revision: string, values: Settings) {
     return this.exclusive("settings", async () => {
       const current = await this.readSettings();
-      if (revision !== current.revision) throw new Error("设置已在另一处修改，请刷新后重新保存。");
+      if (revision !== current.revision) throw new Error("Settings were changed elsewhere; refresh and save again.");
       const text = JSON.stringify(settingsSchema.parse(values), null, 2);
       await this.atomicWrite("settings.json", text);
       return { revision: digest(text), values: settingsSchema.parse(values) };
@@ -109,7 +109,7 @@ export class Store {
     const record = recordSchema.parse(
       JSON.parse(await readFile(path.join(this.directory, "records", `${id}.json`), "utf8")),
     );
-    if (record.agentId !== agentId) throw new Error("这条改动记录不属于当前对话。");
+    if (record.agentId !== agentId) throw new Error("This change record does not belong to the current conversation.");
     return record;
   }
 

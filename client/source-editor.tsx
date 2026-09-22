@@ -55,16 +55,16 @@ export function SourceEditor(
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Action
             theme={theme}
-            label="返回差异"
+            label="Back to diff"
             disabled={mutation.isPending}
             onPress={() => (dirty ? setConfirmClose(true) : props.onClose())}
           />
           <Text style={{ color: theme.colors.foregroundMuted, flex: 1, fontSize: 12 }}>
-            {dirty ? "未保存" : mutation.isSuccess ? "已保存" : "源文件"}
+            {dirty ? "Unsaved" : mutation.isSuccess ? "Saved" : "Source"}
           </Text>
           <Action
             theme={theme}
-            label={mutation.isPending ? "保存中…" : "保存"}
+            label={mutation.isPending ? "Saving…" : "Save"}
             disabled={!dirty || mutation.isPending}
             onPress={() => mutation.mutate()}
           />
@@ -79,10 +79,10 @@ export function SourceEditor(
         )}
         {confirmClose && (
           <View style={{ gap: 8 }}>
-            <Text style={{ color: theme.colors.foreground }}>还有未保存的修改。</Text>
+            <Text style={{ color: theme.colors.foreground }}>There are unsaved changes.</Text>
             <View style={{ flexDirection: "row", gap: 8 }}>
-              <Action theme={theme} label="继续编辑" onPress={() => setConfirmClose(false)} />
-              <Action theme={theme} label="放弃修改并返回" onPress={props.onClose} />
+              <Action theme={theme} label="Keep editing" onPress={() => setConfirmClose(false)} />
+              <Action theme={theme} label="Discard changes and go back" onPress={props.onClose} />
             </View>
           </View>
         )}
@@ -94,7 +94,7 @@ export function SourceEditor(
       >
         <TextInput
           testID="turn-source-input"
-          accessibilityLabel={`编辑源文件 ${saved.path}`}
+          accessibilityLabel={`Edit source file ${saved.path}`}
           multiline
           value={draft}
           onChangeText={setDraft}

@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { settingsSchema, sourceFor } from "../shared/contracts";
 import { Store } from "../server/store";
 
-test("Codex 自动选择差异来源，其他后端汇总编辑；显式配置覆盖默认值", () => {
+test("Codex auto-selects the diff source, other backends aggregate edits, and explicit config overrides defaults", () => {
   const defaults = settingsSchema.parse({});
   assert.equal(sourceFor(defaults, "codex"), "auto");
   assert.equal(sourceFor(defaults, "claude"), "edits");
@@ -19,7 +19,7 @@ test("Codex 自动选择差异来源，其他后端汇总编辑；显式配置�
   );
 });
 
-test("设置持久化，并拒绝另一客户端提交的旧版本", async () => {
+test("Settings persist and stale revisions from another client are rejected", async () => {
   const directory = await mkdtemp(path.join(tmpdir(), "turn-settings-"));
   try {
     const store = new Store(directory);
@@ -29,7 +29,7 @@ test("设置持久化，并拒绝另一客户端提交的旧版本", async () =>
       providers: { codex: "edits" },
     });
     assert.deepEqual(await new Store(directory).readSettings(), saved);
-    await assert.rejects(store.saveSettings(initial.revision, initial.values), /另一处修改/);
+    await assert.rejects(store.saveSettings(initial.revision, initial.values), /changed elsewhere/);
     assert.deepEqual(await store.readSettings(), saved);
   } finally {
     await rm(directory, { recursive: true, force: true });

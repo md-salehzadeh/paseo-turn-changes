@@ -39,7 +39,7 @@ async function fixture() {
   return { cwd, store, record };
 }
 
-test("撤销恢复这一轮之前的文件内容，重复点击不会再改文件", async () => {
+test("Undo restores pre-turn content; repeating it changes nothing", async () => {
   const { cwd, store, record } = await fixture();
   try {
     const result = await undo(store, record.id, "agent");
@@ -53,15 +53,15 @@ test("撤销恢复这一轮之前的文件内容，重复点击不会再改文�
   }
 });
 
-test("任何文件存在后续修改时，整轮拒绝撤销且不触碰其他文件", async () => {
+test("If any file has later changes the whole turn refuses undo without touching other files", async () => {
   const { cwd, store, record } = await fixture();
   try {
     await writeFile(path.join(cwd, "second.txt"), "user's later change\n");
-    await assert.rejects(undo(store, record.id, "agent"), /已有后续修改/);
+    await assert.rejects(undo(store, record.id, "agent"), /later changes/);
     assert.equal(await readFile(path.join(cwd, "first.txt"), "utf8"), "new\n");
     assert.equal(await readFile(path.join(cwd, "second.txt"), "utf8"), "user's later change\n");
     assert.equal((await store.get(record.id, "agent")).undoneAt, null);
-    await assert.rejects(undo(store, record.id, "other-agent"), /不属于/);
+    await assert.rejects(undo(store, record.id, "other-agent"), /does not belong/);
   } finally {
     await rm(cwd, { recursive: true, force: true });
   }

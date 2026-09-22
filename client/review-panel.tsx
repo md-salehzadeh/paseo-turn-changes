@@ -29,7 +29,7 @@ export function ReviewPanel(props: PluginAgentPanelProps) {
         <Text style={{ color: theme.colors.statusDanger }}>{error.message}</Text>
         <Action
           theme={theme}
-          label="重试"
+          label="Retry"
           onPress={() => {
             if (recordId) void query.refetch();
             else void history.refetch();
@@ -40,12 +40,12 @@ export function ReviewPanel(props: PluginAgentPanelProps) {
   if (!recordId && history.isSuccess)
     return (
       <Text style={{ padding: 16, color: theme.colors.foregroundMuted }}>
-        暂无可审核的文件改动。
+        No file changes to review.
       </Text>
     );
   if (!query.data)
     return (
-      <Text style={{ padding: 16, color: theme.colors.foregroundMuted }}>正在读取本轮改动…</Text>
+      <Text style={{ padding: 16, color: theme.colors.foregroundMuted }}>Loading this turn's changes…</Text>
     );
   const index = Math.min(selected?.index ?? 0, Math.max(0, query.data.files.length - 1));
   return (

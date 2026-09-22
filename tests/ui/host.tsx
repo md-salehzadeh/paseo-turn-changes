@@ -47,8 +47,8 @@ export const Modal = Object.assign(
         >
           <div style={{ padding: 14, display: "flex", justifyContent: "space-between" }}>
             <strong>{title}</strong>
-            <button aria-label="关闭弹窗" onClick={() => onOpenChange(false)}>
-              关闭
+            <button aria-label="Close popover" onClick={() => onOpenChange(false)}>
+              Close
             </button>
           </div>
           {children}

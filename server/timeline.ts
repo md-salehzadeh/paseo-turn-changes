@@ -6,7 +6,7 @@ export async function turnItems(
   turnId: string | null,
   previous?: { epoch: string; maxSeq: number },
 ): Promise<{ items: unknown[]; timeline: { epoch: string; maxSeq: number } }> {
-  if (!turnId) throw new Error("执行后端未提供轮次编号，无法可靠划分本轮编辑。");
+  if (!turnId) throw new Error("The backend did not provide a turn id; this turn's edits cannot be delimited reliably.");
   const timeline = paseo.agents.ref(agentId).timeline;
   let page = await timeline.refetch({ limit: 200, projection: "canonical" });
   const epoch = page.epoch;
@@ -15,7 +15,7 @@ export async function turnItems(
   let found = false;
   for (let count = 0; count < 50; count++) {
     if (page.error || page.gap || page.staleCursor || page.epoch !== epoch)
-      throw new Error("对话记录发生变化或不完整，请重新核验本轮改动。");
+      throw new Error("The conversation record changed or is incomplete; re-verify this turn's changes.");
     let boundary = false;
     for (const entry of [...page.entries].reverse()) {
       if (entry.seqEnd <= minimum) {
@@ -31,7 +31,7 @@ export async function turnItems(
       }
     }
     if (boundary || !page.hasOlder) {
-      if (!found) throw new Error("未找到本轮的完整对话记录。");
+      if (!found) throw new Error("No complete conversation record was found for this turn.");
       const calls = new Map<string, { seq: number; item: unknown }>();
       for (const entry of selected) {
         if (entry.item.type !== "tool_call") continue;
@@ -45,7 +45,7 @@ export async function turnItems(
         timeline: { epoch, maxSeq },
       };
     }
-    if (!page.startCursor) throw new Error("对话记录缺少分页位置。");
+    if (!page.startCursor) throw new Error("The conversation record is missing its pagination position.");
     page = await timeline.refetch({
       limit: 200,
       projection: "canonical",
@@ -53,5 +53,5 @@ export async function turnItems(
       cursor: page.startCursor,
     });
   }
-  throw new Error("本轮对话记录过长，未取得完整编辑记录。");
+  throw new Error("This turn's conversation record is too long; no complete edit record was obtained.");
 }

@@ -19,13 +19,13 @@ export function History(props: PluginAgentPanelProps) {
     >
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <Text style={{ color: theme.colors.foreground, fontSize: 20, fontWeight: "600" }}>
-          每轮改动
+          Turn Changes
         </Text>
-        <Action theme={theme} label="刷新" onPress={() => void query.refetch()} />
+        <Action theme={theme} label="Refresh" onPress={() => void query.refetch()} />
       </View>
       {query.isPending && (
         <Text style={{ color: theme.colors.foregroundMuted, paddingVertical: 16 }}>
-          正在读取历史记录…
+          Loading history…
         </Text>
       )}
       {query.isError && (
@@ -35,7 +35,7 @@ export function History(props: PluginAgentPanelProps) {
       )}
       {query.data?.length === 0 && (
         <Text style={{ color: theme.colors.foregroundMuted, paddingVertical: 16 }}>
-          暂无改动记录。插件会从启用后的新轮次开始记录。
+          No change records yet. The plugin records new turns after it is enabled.
         </Text>
       )}
       {query.data?.map((summary) => (

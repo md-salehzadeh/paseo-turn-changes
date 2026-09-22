@@ -37,13 +37,13 @@ export function RecordCard(
   });
   if (query.isPending)
     return (
-      <Text style={{ color: theme.colors.foregroundMuted, padding: 16 }}>正在读取本轮改动…</Text>
+      <Text style={{ color: theme.colors.foregroundMuted, padding: 16 }}>Loading this turn's changes…</Text>
     );
   if (query.isError)
     return (
       <View style={{ padding: 16, gap: 8 }}>
         <Text style={{ color: theme.colors.statusDanger }}>{query.error.message}</Text>
-        <Action theme={theme} label="重试" onPress={() => void query.refetch()} />
+        <Action theme={theme} label="Retry" onPress={() => void query.refetch()} />
       </View>
     );
   return <CardBody {...props} summary={query.data} />;
@@ -91,9 +91,9 @@ function CardBody(
   const deletions = summary.files.reduce((count, file) => count + (file.deletions ?? 0), 0);
   const visible = showAll ? summary.files : summary.files.slice(0, 6);
   const status = [
-    summary.outcome === "failed" ? "本轮执行失败" : "",
-    summary.outcome === "canceled" ? "本轮已中断" : "",
-    summary.undoneAt ? "已撤销" : "",
+    summary.outcome === "failed" ? "Turn failed" : "",
+    summary.outcome === "canceled" ? "Turn canceled" : "",
+    summary.undoneAt ? "Undone" : "",
   ]
     .filter(Boolean)
     .join(" · ");
@@ -126,10 +126,10 @@ function CardBody(
           <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
             <Text style={{ color: colors.foreground, fontSize: 16, fontWeight: "600" }}>
               {summary.finishedAt === ""
-                ? "正在记录本轮改动"
+                ? "Recording this turn's changes"
                 : summary.files.length
-                  ? `已编辑 ${summary.files.length} 个文件`
-                  : "本轮改动未完整记录"}
+                  ? `Edited ${summary.files.length} files`
+                  : "This turn's changes were not fully recorded"}
             </Text>
             {known && summary.files.length > 0 ? (
               <Counts theme={theme} additions={additions} deletions={deletions} />
@@ -140,7 +140,7 @@ function CardBody(
                   fontSize: 12,
                 }}
               >
-                轮次结束后生成文件列表
+                The file list is generated when the turn ends
               </Text>
             ) : null}
           </View>
@@ -191,7 +191,7 @@ function CardBody(
           {file.previousPath && (
             <FilePath
               path={file.previousPath}
-              prefix="重命名自 "
+              prefix="Renamed from "
               muted
               theme={theme}
               compact={layout.compact}
@@ -204,13 +204,13 @@ function CardBody(
         <View style={{ padding: 12 }}>
           <Action
             theme={theme}
-            label={showAll ? "收起文件列表" : `查看全部 ${summary.files.length} 个文件`}
+            label={showAll ? "Collapse file list" : `View all ${summary.files.length} files`}
             onPress={() => setShowAll(!showAll)}
           />
         </View>
       )}
       <Modal
-        title="本轮代码差异"
+        title="Turn code changes"
         open={reviewIndex !== null}
         onOpenChange={(open) => {
           if (!open) setReviewIndex(null);
@@ -223,7 +223,7 @@ function CardBody(
         </Modal.Content>
       </Modal>
       <Modal
-        title="撤销本轮文件改动"
+        title="Undo this turn's file changes"
         open={confirmUndo}
         onOpenChange={(open) => {
           if (!mutation.isPending) setConfirmUndo(open);
@@ -231,7 +231,7 @@ function CardBody(
       >
         <Modal.Content>
           <Text style={{ color: colors.foreground }}>
-            将恢复这 {summary.files.length} 个文件在本轮之前的内容。若文件已有后续修改，撤销会停止。
+            This restores these {summary.files.length} files to their content before this turn. Undo stops if a file has later changes.
           </Text>
           {mutation.isError && (
             <Text style={{ color: colors.statusDanger }}>{mutation.error.message}</Text>
@@ -239,13 +239,13 @@ function CardBody(
           <View style={{ flexDirection: "row", gap: 12 }}>
             <Action
               theme={theme}
-              label="取消"
+              label="Cancel"
               disabled={mutation.isPending}
               onPress={() => setConfirmUndo(false)}
             />
             <Action
               theme={theme}
-              label={mutation.isPending ? "正在撤销…" : "确认撤销"}
+              label={mutation.isPending ? "Undoing…" : "Confirm Undo"}
               disabled={mutation.isPending}
               onPress={() => mutation.mutate()}
             />
@@ -271,12 +271,12 @@ function Actions({
     <View style={{ flexDirection: "row", gap: 8, justifyContent: "flex-end" }}>
       <Action
         theme={theme}
-        label={summary.undoneAt ? "已撤销" : "撤销"}
+        label={summary.undoneAt ? "Undone" : "Undo"}
         disabled={!summary.canUndo}
         hint={undoHint(summary)}
         onPress={undo}
       />
-      <Action theme={theme} label="审核" disabled={summary.files.length === 0} onPress={review} />
+      <Action theme={theme} label="Review" disabled={summary.files.length === 0} onPress={review} />
     </View>
   );
 }

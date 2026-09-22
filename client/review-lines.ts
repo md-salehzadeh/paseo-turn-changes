@@ -65,16 +65,16 @@ export function reviewLines(
       const oldStart = Number(header[1]);
       const newStart = Number(header[2]);
       const gap = Math.min(oldStart - oldEnd, newStart - newEnd);
-      if (gap > 0) meta(`省略 ${gap} 行`);
-      else if (section > 0) meta(`差异区段 · 原 ${oldStart} 行 / 新 ${newStart} 行`);
+      if (gap > 0) meta(`Omitted ${gap} lines`);
+      else if (section > 0) meta(`Diff hunk · old line ${oldStart} / new line ${newStart}`);
       section++;
     } else if (line.text.startsWith("--- ")) {
       flush();
       oldEnd = newEnd = 1;
-      if (section) meta("下一次编辑记录");
+      if (section) meta("Next edit record");
     } else if (line.text.startsWith("\\")) {
       flush();
-      meta("文件末尾没有换行符");
+      meta("No newline at end of file");
     } else if (line.text && !/^(?:Index:|index |diff --git |===|\+\+\+ )/.test(line.text)) {
       flush();
       meta(line.text);

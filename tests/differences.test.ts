@@ -6,7 +6,7 @@ import { test } from "node:test";
 import { createTwoFilesPatch } from "diff";
 import { nativeFiles, parseDiff, reconstruct } from "../server/differences";
 
-test("重复编辑合并为最终净变化，保留本轮之前的未提交内容", async () => {
+test("Repeated edits merge into the final net change, keeping uncommitted content from before the turn", async () => {
   const cwd = await mkdtemp(path.join(tmpdir(), "turn-diff-"));
   try {
     const before = "user's uncommitted change\nold\n";
@@ -29,7 +29,7 @@ test("重复编辑合并为最终净变化，保留本轮之前的未提交内�
   }
 });
 
-test("新增、删除及改回原样", async () => {
+test("Added, deleted, and reverted to original", async () => {
   const cwd = await mkdtemp(path.join(tmpdir(), "turn-diff-"));
   try {
     await writeFile(path.join(cwd, "added.txt"), "new\n");
@@ -58,7 +58,7 @@ test("新增、删除及改回原样", async () => {
   }
 });
 
-test("文件已被再次修改或路径越界时，标明无法还原", async () => {
+test("A file modified again or an out-of-bounds path is marked unrestorable", async () => {
   const cwd = await mkdtemp(path.join(tmpdir(), "turn-diff-"));
   try {
     await writeFile(path.join(cwd, "a.txt"), "external edit\n");
@@ -66,25 +66,25 @@ test("文件已被再次修改或路径越界时，标明无法还原", async ()
       cwd,
       parseDiff(createTwoFilesPatch("a.txt", "a.txt", "old\n", "new\n")),
     );
-    assert.match(file.issue!, /不一致/);
+    assert.match(file.issue!, /does not match the edit record/);
     assert.equal(file.additions, null);
     const [outside] = await reconstruct(
       cwd,
       parseDiff(createTwoFilesPatch("../outside.txt", "../outside.txt", "old\n", "new\n")),
     );
-    assert.match(outside.issue!, /工作目录/);
+    assert.match(outside.issue!, /working directory/);
     await symlink("/tmp", path.join(cwd, "link"));
     const [linked] = await reconstruct(
       cwd,
       parseDiff(createTwoFilesPatch("link/a", "link/a", "old\n", "new\n")),
     );
-    assert.match(linked.issue!, /符号链接/);
+    assert.match(linked.issue!, /symlinks/i);
   } finally {
     await rm(cwd, { recursive: true, force: true });
   }
 });
 
-test("Git 的中文转义路径解码为真实文件名，并保留原生差异证据", async () => {
+test("Git-escaped CJK paths decode to real file names and keep native diff evidence", async () => {
   const cwd = await mkdtemp(path.join(tmpdir(), "turn-diff-"));
   try {
     const diff =
@@ -96,7 +96,7 @@ test("Git 的中文转义路径解码为真实文件名，并保留原生差异�
     assert.equal(file.issue, null);
     await writeFile(path.join(cwd, "文.txt"), "later\n");
     const [changed] = await nativeFiles(cwd, diff);
-    assert.match(changed.issue!, /不一致/);
+    assert.match(changed.issue!, /does not match the edit record/);
     assert.deepEqual([changed.additions, changed.deletions], [1, 1]);
     assert.match(changed.patch, /-old\n\+new/);
     assert.equal(changed.before, null);
@@ -105,7 +105,7 @@ test("Git 的中文转义路径解码为真实文件名，并保留原生差异�
   }
 });
 
-test("UTF-8 BOM 和原有文件权限不会在还原时丢失", async () => {
+test("UTF-8 BOM and original file permissions survive restore", async () => {
   const cwd = await mkdtemp(path.join(tmpdir(), "turn-diff-"));
   try {
     const before = "\ufeffold\n";

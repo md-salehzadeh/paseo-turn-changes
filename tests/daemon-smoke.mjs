@@ -102,7 +102,7 @@ try {
   const saved = await rpc("sources.save", { revision: config.revision, values: config.values });
   await assert.rejects(
     rpc("sources.save", { revision: config.revision, values: config.values }),
-    /另一处修改/,
+    /changed elsewhere/,
   );
   const evidence = [];
   for (const name of ["codex", "claude"]) {
@@ -160,7 +160,7 @@ try {
       () => client.fetchAgent(agent.id),
       (value) => value.agent?.status === "idle",
     );
-    await assert.rejects(rpc("changes.undo", input), /后续修改/);
+    await assert.rejects(rpc("changes.undo", input), /later changes/);
     await rpc("changes.undo", secondInput);
     assert.equal(await readFile(path.join(cwd, "file.txt"), "utf8"), "new 1\n");
     const undone = await rpc("changes.undo", input);

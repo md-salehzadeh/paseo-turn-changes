@@ -32,7 +32,7 @@ export function contribute(server: PluginServerContext) {
   function enqueue(agentId: string, action: () => Promise<void>) {
     const task = (pending.get(agentId) ?? Promise.resolve()).catch(() => undefined).then(action);
     pending.set(agentId, task);
-    void task.catch((error) => console.error("每轮改动记录失败：", message(error)));
+    void task.catch((error) => console.error("Turn-change recording failed: ", message(error)));
     void task
       .finally(() => {
         if (pending.get(agentId) === task) pending.delete(agentId);
@@ -89,7 +89,7 @@ export function contribute(server: PluginServerContext) {
   server.handle(getFile, async (input, { paseo }) => {
     const record = await forReview(await store.get(input.recordId, input.agentId), paseo);
     const file = record.files[input.index];
-    if (!file) throw new Error("未找到这条文件改动。");
+    if (!file) throw new Error("This file change was not found.");
     return {
       path: path.resolve(record.cwd, file.path),
       previousPath: file.previousPath === null ? null : path.resolve(record.cwd, file.previousPath),
@@ -107,7 +107,7 @@ export function contribute(server: PluginServerContext) {
   ) {
     const record = await forReview(await store.get(input.recordId, input.agentId), paseo);
     const file = record.files[input.index];
-    if (!file) throw new Error("未找到这条文件改动。");
+    if (!file) throw new Error("This file change was not found.");
     return resolveSource(record.cwd, file.path, home);
   }
   server.handle(getSource, async (input, { paseo }) => readSource(await sourceFor(input, paseo)));
@@ -123,9 +123,9 @@ export function contribute(server: PluginServerContext) {
   server.handle(undoChanges, async (input, { paseo }) => {
     const record = await store.get(input.recordId, input.agentId);
     if (record.canUndo && !(await forReview(record, paseo)).canUndo)
-      throw new Error("本轮补回的文件缺少撤销快照，自动撤销不可用。");
+      throw new Error("Files recovered for this turn lack undo snapshots; automatic undo is unavailable.");
     const listing = await paseo.agents.list();
-    if (listing.pageInfo.hasMore) throw new Error("无法完整确认正在运行的 Agent，请稍后再试。");
+    if (listing.pageInfo.hasMore) throw new Error("Running agents could not be fully confirmed; try again later.");
     const root = await realpath(record.cwd);
     for (const { agent } of listing.entries) {
       if (agent.status !== "running" && agent.status !== "initializing") continue;
@@ -136,7 +136,7 @@ export function contribute(server: PluginServerContext) {
         value === "" ||
         (!value.startsWith(`..${path.sep}`) && value !== ".." && !path.isAbsolute(value));
       if (contained(relative) || contained(reverse))
-        throw new Error("这个工作目录仍有 Agent 正在运行，请等待结束后再撤销。");
+        throw new Error("An agent is still running in this working directory; wait for it to finish before undoing.");
     }
     return summarize(await undo(store, input.recordId, input.agentId));
   });

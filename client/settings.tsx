@@ -18,9 +18,9 @@ import {
 import { Action } from "./card";
 
 const options: { label: string; value: SourceMode }[] = [
-  { label: "自动（优先原生）", value: "auto" },
-  { label: "原生本轮差异", value: "native" },
-  { label: "插件汇总编辑", value: "edits" },
+  { label: "Auto (prefer native)", value: "auto" },
+  { label: "Native turn diff", value: "native" },
+  { label: "Plugin edit records", value: "edits" },
 ];
 
 export function SourcesSettings({ theme, host }: PluginSurfaceProps) {
@@ -34,27 +34,27 @@ export function SourcesSettings({ theme, host }: PluginSurfaceProps) {
   const [provider, setProvider] = useState("");
   const mutation = useMutation({
     mutationFn: (values: Settings) => {
-      if (!query.data) throw new Error("设置尚未读取完成。");
+      if (!query.data) throw new Error("Settings have not loaded yet.");
       return save({ revision: query.data.revision, values });
     },
     onSuccess: (value) => queries.setQueryData(key, value),
   });
   if (query.isPending)
-    return <Text style={{ color: theme.colors.foregroundMuted }}>正在读取设置…</Text>;
+    return <Text style={{ color: theme.colors.foregroundMuted }}>Loading settings…</Text>;
   if (query.isError)
     return (
       <View style={{ gap: 12 }}>
         <Text style={{ color: theme.colors.statusDanger }}>{query.error.message}</Text>
-        <Action theme={theme} label="重新读取" onPress={() => void query.refetch()} />
+        <Action theme={theme} label="Reload" onPress={() => void query.refetch()} />
       </View>
     );
   const values = query.data.values;
   return (
     <View style={{ gap: 20 }} testID="turn-changes-settings">
       <Text style={{ color: theme.colors.foregroundMuted }}>
-        为不同执行后端选择差异来源。修改从下一轮开始生效，历史改动记录保持原样。
+        Choose the diff source per execution backend. Changes apply from the next turn; historical records keep their original source.
       </Text>
-      <SettingsSection title="数据来源">
+      <SettingsSection title="Change source">
         <SettingsCard>
           {Object.entries(values.providers).map(([id, source]) => (
             <View key={id} style={{ gap: 8 }}>
@@ -70,15 +70,15 @@ export function SourcesSettings({ theme, host }: PluginSurfaceProps) {
               {source !== "edits" && (
                 <Text style={{ color: theme.colors.foregroundMuted, fontSize: 12 }}>
                   {native.isError
-                    ? `原生数据状态读取失败：${native.error.message}`
+                    ? `Failed to read native status: ${native.error.message}`
                     : native.data?.[id]
-                      ? `最近一轮：${native.data[id].available ? "已接收到原生接口信号" : source === "auto" ? "无原生接口信号，自动使用插件汇总" : "未提供原生接口信号，需要接入补丁"}（${new Date(native.data[id].observedAt).toLocaleString()}）`
-                      : "尚未确认原生接口。启用后完成一轮对话即可检查。"}
+                      ? `Last turn: ${native.data[id].available ? "native signal received" : source === "auto" ? "no native signal; using plugin records automatically" : "no native signal; host patch required"} (${new Date(native.data[id].observedAt).toLocaleString()})`
+                      : "Native interface not confirmed yet. Complete a turn after enabling to check."}
                 </Text>
               )}
               <Action
                 theme={theme}
-                label={`移除 ${id} 单独配置`}
+                label={`Remove ${id} override`}
                 disabled={mutation.isPending}
                 onPress={() => {
                   const providers = { ...values.providers };
@@ -89,7 +89,7 @@ export function SourcesSettings({ theme, host }: PluginSurfaceProps) {
             </View>
           ))}
           <SettingsSelect
-            label="其他执行后端"
+            label="Other backends"
             value={values.defaultSource}
             options={options}
             disabled={mutation.isPending}
@@ -97,12 +97,12 @@ export function SourcesSettings({ theme, host }: PluginSurfaceProps) {
           />
         </SettingsCard>
       </SettingsSection>
-      <Action theme={theme} label="刷新原生数据状态" onPress={() => void native.refetch()} />
-      <SettingsSection title="添加单独配置">
+      <Action theme={theme} label="Refresh native status" onPress={() => void native.refetch()} />
+      <SettingsSection title="Add override">
         <SettingsCard>
           <SettingsInput
-            label="执行后端编号"
-            placeholder="例如 claude 或 claude-super-relay"
+            label="Backend ID"
+            placeholder="e.g. claude or claude-super-relay"
             initialValue=""
             onChangeText={setProvider}
             disabled={mutation.isPending}
@@ -110,7 +110,7 @@ export function SourcesSettings({ theme, host }: PluginSurfaceProps) {
         </SettingsCard>
         <Action
           theme={theme}
-          label="添加配置"
+          label="Add override"
           disabled={
             mutation.isPending ||
             !provider.trim() ||
@@ -125,16 +125,16 @@ export function SourcesSettings({ theme, host }: PluginSurfaceProps) {
           }
         />
       </SettingsSection>
-      {mutation.isPending && <Text style={{ color: theme.colors.foregroundMuted }}>正在保存…</Text>}
+      {mutation.isPending && <Text style={{ color: theme.colors.foregroundMuted }}>Saving…</Text>}
       {mutation.isSuccess && (
-        <Text style={{ color: theme.colors.statusSuccess }}>设置已保存，下轮生效。</Text>
+        <Text style={{ color: theme.colors.statusSuccess }}>Settings saved; they apply from the next turn.</Text>
       )}
       {mutation.isError && (
         <View style={{ gap: 8 }}>
           <Text style={{ color: theme.colors.statusDanger }}>{mutation.error.message}</Text>
           <Action
             theme={theme}
-            label="刷新设置"
+            label="Refresh settings"
             onPress={() => {
               mutation.reset();
               void query.refetch();
@@ -143,8 +143,8 @@ export function SourcesSettings({ theme, host }: PluginSurfaceProps) {
         </View>
       )}
       <Text style={{ color: theme.colors.foregroundMuted, fontSize: 12 }}>
-        自动模式每轮优先使用原生差异，没有原生接口信号时使用插件汇总。选择“原生本轮差异”会固定来源。
-        插件汇总只覆盖结构化文件编辑记录，可能遗漏 Shell 直接写入的文件。
+        Auto mode prefers the native diff each turn and falls back to plugin edit records when no native signal arrives. Choosing "Native turn diff" pins the source.
+        Plugin edit records only cover structured file edits and can miss files written directly by shell commands.
       </Text>
     </View>
   );
