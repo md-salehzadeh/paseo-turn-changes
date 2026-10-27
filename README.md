@@ -14,10 +14,10 @@ The screenshots use the real plugin components with simulated file data; the rev
 
 ## Install
 
-Requires the Paseo client and daemon on `0.8.x` stable with plugins enabled on the target host. From a Paseo CLI connected to that host:
+Requires the Paseo client and daemon on `0.8.x`–`0.13.x` with plugins enabled on the target host. From a Paseo CLI connected to that host:
 
 ```sh
-paseo plugin add md-salehzadeh/paseo-turn-changes
+paseo plugin add github:md-salehzadeh/paseo-turn-changes
 ```
 
 The default configuration works on official Paseo with no host patch: Codex prefers the native turn diff and falls back to aggregating file edit records; other execution backends aggregate file edit records by default. Dependencies are prepared from the lock file at install time and need no npm publish.
@@ -30,7 +30,7 @@ paseo plugin update turn-changes
 
 ## Limitations
 
-- The plugin interface is limited to `>=0.8.0 <0.9.0`; Codex native diffs need the optional host patch described below, and the default auto mode needs no patch.
+- The plugin interface is limited to `>=0.8.0 <0.14.0`; Codex native diffs need the optional host patch described below, and the default auto mode needs no patch.
 - Pure plugin mode depends on structured file edit records and cannot fully track files written directly by shell commands.
 - Automatic undo is unavailable when records are incomplete, files are outside the working directory, or files have later changes; whatever edit content is available can still be reviewed.
 - This fork's UI is English. Web desktop and narrow layouts are validated; native Android and iOS clients are not.
@@ -115,7 +115,7 @@ The directory belongs to the daemon running the plugin and is not synced across 
 
 `patches/codex-turn-diff.patch` contains the Paseo source context and the changes this plugin needs; upstream copyright and licence are retained in [patches/PASEO-LICENSE](patches/PASEO-LICENSE).
 
-The client and daemon must match the Paseo 0.8 plugin interface; the manifest requires `>=0.8.0 <0.9.0` and does not accept 0.7 or 0.8 beta. The patch is based on official `v0.8.0`, commit `b8e24677e12b226c7c38c1c3a40649daa9f1152f`; see [patches/codex-turn-diff.patch](patches/codex-turn-diff.patch). Official 0.8.0 still discards Codex native cumulative diff events; the patch changes server-internal events and plugin server hooks and does not modify the client protocol.
+The client and daemon must match the Paseo 0.8 plugin interface; the manifest requires `>=0.8.0 <0.14.0` and does not accept 0.7 or 0.8 beta. The patch is based on official `v0.8.0`, commit `b8e24677e12b226c7c38c1c3a40649daa9f1152f`; see [patches/codex-turn-diff.patch](patches/codex-turn-diff.patch). Official 0.8.0 still discards Codex native cumulative diff events; the patch changes server-internal events and plugin server hooks and does not modify the client protocol.
 
 Apply the patch in the corresponding Paseo source root and build:
 
